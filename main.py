@@ -234,14 +234,24 @@ def printFIX(trade, msgType):
         }
     msg = msg.get(msgType)
     header=f"8=FIX4.4|9={sys.getsizeof(msg)}|35={msgType}|49=SENDER|56=RECEIVER|34=MsgSeqNum|52=SendTime|"
-    footer=f"10={sum(msg.encode())}|"
+    footer=f"10={sum(msg.encode())}"
     return header+msg+footer
+
+def printOrder(trade):
+    return f"ClOrdID,{trade.sym},{1 if trade.side == 'b' else 2},{now()},{trade.vol},{1 if trade.ordType == 'Market' else 2}"
 
 def logFIX(trade, msgType):
     with open('fix.log','a') as f:
         f.write(printFIX(trade,msgType)+'\n')
         f.close()
+    if msgType == 'newOrderSingle':
+        with open('order.log','a') as f:
+            f.write(printOrder(trade)+'\n')
+            f.close()
 
+with open('order.log','w') as f:
+    f.write("CLOrdID,sym,side,time,vol,orderType"+'\n')
+    f.close()
 createTraders(10)
 offerQuotes(len(syms)*100)
 generateTrades(100)
